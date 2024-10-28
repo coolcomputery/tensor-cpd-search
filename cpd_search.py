@@ -164,7 +164,7 @@ pruner: given `(T,R,MOD)`, outputs
 * `False` if it can prove that no rank-`R` decomp of `T` over the integers mod `MOD` exists
 * `None` otherwise
 
-in each function call, the DFS applies basis reduction, along with a default pruner and bounder based on the dimensions of the resulting tensor (i.e. the slice ranks of the original tensor)
+implementation detail: pruner functions are allowed to assume that any tensor they receive is already axis-reduced
 '''
 NO_CPD_EXISTS=False
 CANNOT_DETERMINE_IF_CPD_EXISTS=None
@@ -213,14 +213,15 @@ def cpd_search_help(T_target,R,MOD,pruners=None,verbose=True):
             update_stats()
         work_stats['work'][rem]+=1
         
+        T_compressed,Ss_uncompress=axis_reduce(T,MOD)
         for name,pruner in pruners.items():
-            ret=pruner(T,N0+rem,MOD)
+            ret=pruner(T_compressed,N0+rem,MOD)
             if ret!=CANNOT_DETERMINE_IF_CPD_EXISTS:
                 work_stats[f'prune::{name}'][rem]+=1
                 if ret==NO_CPD_EXISTS:
                     return None
                 else:
-                    return ret
+                    return cpd_transform(ret,Ss_uncompress,MOD)
         
         assert rem>=0, rem
         if rem==0:
@@ -378,15 +379,6 @@ def prune_rref0(T,R,MOD,verbose=False):
         return cpd_transform(ret,(mat_inv(Q,MOD),)+(None,)*(len(T.shape)-1),MOD)
     return CANNOT_DETERMINE_IF_CPD_EXISTS
 prune_rref=expand_pruner_rotate(prune_rref0)
-
-def prune_rref0_wrapper(T,R,MOD):
-    Tc,Ss=axis_reduce(T,MOD)
-    ret=prune_rref0(Tc,R,MOD)
-    if ret==NO_CPD_EXISTS or ret==CANNOT_DETERMINE_IF_CPD_EXISTS:
-        return ret
-    return cpd_transform(ret,(Ss,)+(None,)*(len(T.shape)-1),MOD)
-
-prune_rref_wrapper=expand_pruner_rotate(prune_rref0_wrapper)
 
 '''
 ## rank-sum pruning
