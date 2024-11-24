@@ -185,7 +185,7 @@ def all_vecs(n,MOD):
     return (np.array(v,dtype=int) for v in it.product(range(MOD),repeat=n))
 
 def cpd_search_help(T_target,R,MOD,pruners=None,verbose=True):
-    ''' assume T_target is concise and all its shape lengths are <=R '''
+    ''' assume T_target is concise '''
     D=len(T_target.shape)
     N0=T_target.shape[0]
     
@@ -209,6 +209,7 @@ def cpd_search_help(T_target,R,MOD,pruners=None,verbose=True):
             timer_info['mark']+=10**int(np.log10(max(10,timer_info['mark'])))
     
     def dfs(T,rem):
+        ''' assume all shape lengths of T are <=R '''
         if verbose:
             update_stats()
         work_stats['work'][rem]+=1
@@ -261,24 +262,38 @@ def cpd_search_help(T_target,R,MOD,pruners=None,verbose=True):
             if ret is not None:
                 return ret+[fac_vecs]
         return None
-    ret=dfs(T_target,R-N0)
+    
+    cpd=(
+        dfs(T_target,R-N0)
+        if max(T_target.shape)<=R else
+        None
+    )
     if verbose:
         update_stats(force_display=True)
-    return ret
+    return {
+        'cpd':cpd,
+        'stats':work_stats,
+    }
 
-def cpd_search(T_target,R,MOD,pruners=None,verbose=True):
+def cpd_search(T_target,R,MOD,pruners=None,verbose=True,return_stats=False):
     D=len(T_target.shape)
     T_reduced,Ss=axis_reduce(T_target,MOD)
-    
-    if max(T_reduced.shape)>R:
-        return None
     d_max=max(range(D),key=(lambda ax:T_reduced.shape[ax]))
-    ret_compressed_rotated=cpd_search_help(rotate(T_reduced,d_max),R,MOD,pruners=pruners,verbose=verbose)
-    if ret_compressed_rotated is None:
-        return None
-    ret=cpd_transform(cpd_rotate(ret_compressed_rotated,-d_max),Ss,MOD)
-    assert_cpd_valid(T_target,R,MOD,ret)
-    return ret
+    raw_output=cpd_search_help(rotate(T_reduced,d_max),R,MOD,pruners=pruners,verbose=verbose)
+    
+    cpd_compressed_rotated=raw_output['cpd']
+    cpd=None
+    if cpd_compressed_rotated is not None:
+        cpd=cpd_transform(cpd_rotate(cpd_compressed_rotated,-d_max),Ss,MOD)
+        assert_cpd_valid(T_target,R,MOD,cpd)
+    return (
+        {
+            'cpd':cpd,
+            'stats':raw_output['stats']
+        }
+        if return_stats else
+        cpd
+    )
 
 '''
 ==== pruners ====
