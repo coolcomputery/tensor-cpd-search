@@ -214,16 +214,6 @@ def cpd_search_help(T_target,R,MOD,pruners=None,verbose=True):
             update_stats()
         work_stats['work'][rem]+=1
         
-        T_compressed,Ss_uncompress=axis_reduce(T,MOD)
-        for name,pruner in pruners.items():
-            ret=pruner(T_compressed,N0+rem,MOD)
-            if ret!=CANNOT_DETERMINE_IF_CPD_EXISTS:
-                work_stats[f'prune::{name}'][rem]+=1
-                if ret==NO_CPD_EXISTS:
-                    return None
-                else:
-                    return cpd_transform(ret,Ss_uncompress,MOD)
-        
         assert rem>=0, rem
         if rem==0:
             B=[]
@@ -246,6 +236,17 @@ def cpd_search_help(T_target,R,MOD,pruners=None,verbose=True):
                 return None
             B_mat=np.array(B,dtype=int)
             return cpd_transform(fac_tuples,(mat_inv(B_mat,MOD),)+(None,)*(D-1),MOD)
+        
+        if len(pruners)>0:
+            T_compressed,Ss_uncompress=axis_reduce(T,MOD)
+            for name,pruner in pruners.items():
+                ret=pruner(T_compressed,N0+rem,MOD)
+                if ret!=CANNOT_DETERMINE_IF_CPD_EXISTS:
+                    work_stats[f'prune::{name}'][rem]+=1
+                    if ret==NO_CPD_EXISTS:
+                        return None
+                    else:
+                        return cpd_transform(ret,Ss_uncompress,MOD)
         
         # fix the first rank of factor vectors in CPD
         # case: tensor product of fixed factor vectors is the all-zero tensor
