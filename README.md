@@ -8,8 +8,8 @@ WLOG assume $n_0\ge \dots\ge n_{D-1}$ and $T$ is concise (i.e. for each axis $d$
 ## Standard CPD
 Finds CPDs over a finite field $\mathcal{P}=\mathbb{F}$.
 
-### Current fastest algorithm
-Java folder: `cpd/skip-axis/` (paper to be released)
+### Current fastest algorithm ([paper](https://arxiv.org/abs/2502.12390))
+Java folder: `cpd/skip-axis/`
 * time complexity: $O^*(|\mathbb{F}|^{\min(R,\ \sum_{d\ge 2} n_d) + (R-n_0)(\sum_{d\ne 0} n_d)})$
 * **Note**: only supports finite field $\mathbb{F}$ with prime order
 * files:
@@ -17,8 +17,8 @@ Java folder: `cpd/skip-axis/` (paper to be released)
   * `Test.java`: incomplete set of unit and integration tests
   * `Main.java`: speedtests
 
-### Older algorithm
-Standalone CLI: `cpd/original/cpd_search.py` (following [paper 1](https://arxiv.org/abs/2411.14676))
+### Older algorithm ([paper, Sec. 3](https://arxiv.org/abs/2411.14676))
+Standalone CLI: `cpd/original/cpd_search.py`
 * time complexity: $O^*(|\mathbb{F}|^{n_0 + (R-n_0)(\sum_d n_d)})$
 * **Note**: only supports finite field $\mathbb{F}$ with prime order
 
@@ -29,10 +29,10 @@ Standalone CLI: `cpd/original/cpd_search.py` (following [paper 1](https://arxiv.
   * proves that the Strassen tensor does not have a rank-6 CPD over the field $\mathbb{F}_2$
   * uses some pruners to speed up search without affecting correctness
 
-## Border CPD
+## Border CPD ([paper, Sec. 4](https://arxiv.org/abs/2411.14676))
 Finds CPDs over the ring $\mathbb{F}[x]/(x^H)$, for some finite field $\mathbb{F}$ and integer $H\ge 1$.
 
-Standalone CLI: `border-cpd/border_cpd_search.py` (following [paper 1](https://arxiv.org/abs/2411.14676))
+Standalone CLI: `border-cpd/border_cpd_search.py`
 * time complexity: $O^*(|\mathbb{F}|^{H\sum_d \sum_{1\le r\le R} \min(n_d,r)})$
 * **Note**: only supports finite field $\mathbb{F}$ with prime order
 ### Example commands
